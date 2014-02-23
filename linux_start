@@ -1,0 +1,41 @@
+#!/bin/bash
+prog="$0"
+while [ -h "${prog}" ]; do
+    newProg=`/bin/ls -ld "${prog}"`
+    echo ${newProg}
+
+
+    newProg=`expr "${newProg}" : ".* -> \(.*\)$"`
+    if expr "x${newProg}" : 'x/' >/dev/null; then
+        prog="${newProg}"
+    else
+        progdir=`dirname "${prog}"`
+        prog="${progdir}/${newProg}"
+    fi
+done
+oldwd=`pwd`
+progdir=`dirname "${prog}"`
+cd "${progdir}"
+progdir=`pwd`
+prog="${progdir}"/`basename "${prog}"`
+cd "${oldwd}"
+
+pythonfile=script/python.py
+
+libdir="$progdir"
+if [ ! -r "$libdir/$pythonfile" ]
+then
+    echo `basename "$prog"`": can't find $pythonfile"
+    exit 1
+fi
+
+if [ "$OSTYPE" = "cygwin" ] ; then
+	pythonpath=`cygpath -w  "$libdir/$pythonfile"`
+else
+	pythonpath="$libdir/$pythonfile"
+fi
+
+PATH=$PATH:`pwd`/platform/linux;
+export PATH;
+sudo chmod a+x platform/linux/aapt
+exec python "$pythonpath"
